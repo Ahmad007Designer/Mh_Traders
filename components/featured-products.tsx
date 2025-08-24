@@ -15,7 +15,7 @@ const categories = [
       {
         id: 1,
         name: "Standard Photo Print",
-        price: 50,
+        price: 1,
         image: "/images/6x8.jpg",
       },
       {
@@ -133,7 +133,7 @@ export default function CategoriesSection() {
                       <h4 className="text-lg font-semibold text-slate-800 mb-2">{product.name}</h4>
                       <p className="text-blue-600 font-bold mb-4">₹{product.price}</p>
                       <button
-                        onClick={() => addToCart(product.name, product.price)}
+                        onClick={() => addToCart({ id: String(product.id), name: product.name, price: product.price })}
                         className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300 w-full"
                       >
                         Add to Cart
