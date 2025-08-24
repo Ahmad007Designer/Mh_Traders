@@ -1,11 +1,10 @@
 "use client"
 
 import type React from "react"
-
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useContext, useState, useCallback } from "react"
 
 interface CartItem {
-  id: number
+  id: string
   name: string
   price: number
   quantity: number
@@ -15,10 +14,12 @@ interface CartContextType {
   cart: CartItem[]
   cartTotal: number
   isCartOpen: boolean
-  addToCart: (name: string, price: number) => void
-  removeFromCart: (id: number) => void
+  addToCart: (item: Omit<CartItem, "quantity">) => void
+  removeFromCart: (id: string) => void
+  updateQuantity: (id: string, quantity: number) => void
+  clearCart: () => void
   toggleCart: () => void
-  showNotification: (message: string, type?: "success" | "warning" | "info" | "error") => void
+  showNotification: (message: string, type: "success" | "warning" | "error") => void
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -26,103 +27,60 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([])
   const [isCartOpen, setIsCartOpen] = useState(false)
-  const [cartTotal, setCartTotal] = useState(0)
 
-  useEffect(() => {
-    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    setCartTotal(total)
-  }, [cart])
+  const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0)
 
-  const addToCart = (productName: string, price: number) => {
-    const existingItem = cart.find((item) => item.name === productName)
+  const addToCart = useCallback((newItem: Omit<CartItem, "quantity">) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((item) => item.id === newItem.id)
+      if (existingItem) {
+        return prevCart.map((item) => (item.id === newItem.id ? { ...item, quantity: item.quantity + 1 } : item))
+      }
+      return [...prevCart, { ...newItem, quantity: 1 }]
+    })
+  }, [])
 
-    if (existingItem) {
-      setCart(cart.map((item) => (item.name === productName ? { ...item, quantity: item.quantity + 1 } : item)))
-    } else {
-      setCart([
-        ...cart,
-        {
-          id: Date.now(),
-          name: productName,
-          price: price,
-          quantity: 1,
-        },
-      ])
-    }
+  const removeFromCart = useCallback((id: string) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== id))
+  }, [])
 
-    showNotification(`${productName} added to cart!`, "success")
-  }
-
-  const removeFromCart = (itemId: number) => {
-    setCart(cart.filter((item) => item.id !== itemId))
-    showNotification("Item removed from cart", "info")
-  }
-
-  const toggleCart = () => {
-    setIsCartOpen(!isCartOpen)
-  }
-
-  const showNotification = (message: string, type: "success" | "warning" | "info" | "error" = "info") => {
-    const notification = document.createElement("div")
-    const colors = {
-      success: "#27ae60",
-      warning: "#f39c12",
-      info: "#3498db",
-      error: "#e74c3c",
-    }
-
-    notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: ${colors[type]};
-      color: white;
-      padding: 1rem 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      z-index: 4000;
-      transition: all 0.3s ease;
-      max-width: 300px;
-    `
-
-    const iconMap = {
-      success: "check",
-      warning: "exclamation",
-      error: "times",
-      info: "info",
-    }
-
-    notification.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 0.5rem;">
-        <i class="fas fa-${iconMap[type]}-circle"></i>
-        ${message}
-      </div>
-    `
-
-    document.body.appendChild(notification)
-
-    setTimeout(() => {
-      notification.style.opacity = "0"
-      notification.style.transform = "translateX(100%)"
-      setTimeout(() => document.body.removeChild(notification), 300)
-    }, 4000)
-  }
-
-  return (
-    <CartContext.Provider
-      value={{
-        cart,
-        cartTotal,
-        isCartOpen,
-        addToCart,
-        removeFromCart,
-        toggleCart,
-        showNotification,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
+  const updateQuantity = useCallback(
+    (id: string, quantity: number) => {
+      if (quantity <= 0) {
+        removeFromCart(id)
+        return
+      }
+      setCart((prevCart) => prevCart.map((item) => (item.id === id ? { ...item, quantity } : item)))
+    },
+    [removeFromCart],
   )
+
+  const clearCart = useCallback(() => {
+    setCart([])
+  }, [])
+
+  const toggleCart = useCallback(() => {
+    setIsCartOpen((prev) => !prev)
+  }, [])
+
+  const showNotification = useCallback((message: string, type: "success" | "warning" | "error") => {
+    // Simple notification - you can enhance this with a proper toast library
+    alert(`${type.toUpperCase()}: ${message}`)
+  }, [])
+
+  const value: CartContextType = {
+    cart,
+    cartTotal,
+    isCartOpen,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    toggleCart,
+    showNotification,
+  }
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
 
 export function useCart() {

@@ -138,7 +138,7 @@ const stopAutoSlide = () => {
                     </div>
                     <div className="text-center">
                       <button
-                        onClick={() => addToCart(product.name, product.price)}
+                        onClick={() => addToCart({ id: String(product.id), name: product.name, price: product.price })}
                         className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-2 rounded-lg font-medium transition-all duration-300 hover:-translate-y-1 flex items-center gap-2 mx-auto"
                       >
                         Add to Cart

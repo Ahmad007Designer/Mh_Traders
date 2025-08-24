@@ -1,12 +1,14 @@
-import type { Metadata } from 'next'
-import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
-import './globals.css'
+import type React from "react"
+import type { Metadata } from "next"
+import { GeistSans } from "geist/font/sans"
+import { GeistMono } from "geist/font/mono"
+import { CartProvider } from "@/contexts/cart-context"
+import "./globals.css"
 
 export const metadata: Metadata = {
-  title: 'MH Traders',
-  description: 'Jaisi Jarurat Waisi Deve',
-  generator: '',
+  title: "MH Traders",
+  description: "Premium printing services.",
+  generator: "Ahmad Husain",
 }
 
 export default function RootLayout({
@@ -25,7 +27,9 @@ html {
 }
         `}</style>
       </head>
-      <body>{children}</body>
+      <body>
+        <CartProvider>{children}</CartProvider>
+      </body>
     </html>
   )
 }
