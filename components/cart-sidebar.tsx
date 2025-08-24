@@ -31,8 +31,8 @@ export default function CartSidebar() {
     }
 
     try {
-      const upiId = "9335537142@ptyes"
-       const amount = Number(cartTotal) || 0 
+      const upiId = "7234944612@ptsbi"
+      const amount = Number(cartTotal) || 0
       const upiString = `upi://pay?pa=${upiId}&am=${amount}&cu=INR&tn=Payment for Order`
 
       const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
@@ -51,18 +51,80 @@ export default function CartSidebar() {
     setQrCodeUrl("")
   }
 
+
+  function generateOrderNumber() {
+    const now = new Date();
+    const datePart = now.getFullYear().toString().slice(-2) + 
+                    (now.getMonth() + 1).toString().padStart(2, '0') + 
+                    now.getDate().toString().padStart(2, '0');
+    const timePart = now.getHours().toString().padStart(2, '0') +
+                    now.getMinutes().toString().padStart(2, '0') +
+                    now.getSeconds().toString().padStart(2, '0');
+    const randomPart = Math.floor(1000 + Math.random() * 9000);
+
+    return "MHT" + datePart + timePart + randomPart;
+  }
+
   const confirmPayment = () => {
-    const orderNumber = "MHT" + Date.now()
-    showNotification(`Order placed successfully! Order Number: ${orderNumber}`, "success")
-    setShowQRCode(false)
-    toggleCart()
+  // const orderNumber = "MHT" + Date.now()
+  const orderNumber = generateOrderNumber();
+  showNotification(`Order placed successfully! Order Number: ${orderNumber}`, "success")
+  setShowQRCode(false)
+  toggleCart()
+
+  // Open popup
+  const popup = window.open("", "PaymentSuccess", "width=400,height=320")
+  if (!popup) return
+
+  // Clear existing document safely
+  popup.document.body.innerHTML = ""
+
+  // Create container
+  const container = popup.document.createElement("div")
+    container.style.cssText = `
+      border: 2px solid green;
+      border-radius: 10px;
+      padding: 20px;
+      background: #f0fff0;
+      text-align: center;
+      font-family: Arial, sans-serif;
+    `
+
+    // Title
+    const title = popup.document.createElement("h2")
+    title.textContent = "✅ Payment Successful"
+    title.style.color = "green"
+
+    // Message
+    const msg = popup.document.createElement("p")
+    msg.innerHTML = "Please take a <b>screenshot</b> of this payment<br/>Send it on WhatsApp to:"
+
+    // WhatsApp link
+    const link = popup.document.createElement("a")
+    link.href = "https://wa.me/7234944612?text=Hello,%20I%20have%20completed%20the%20payment.%20Here%20is%20my%20screenshot."
+    link.target = "_blank"
+    link.textContent = "📱 7234944612 (Click to Open WhatsApp)"
+    link.style.cssText = `
+      display:inline-block;
+      margin-top:12px;
+      padding:10px 15px;
+      background:#25D366;
+      color:#fff;
+      text-decoration:none;
+      border-radius:8px;
+      font-weight:bold;
+    `
+
+    // Append everything
+    container.appendChild(title)
+    container.appendChild(msg)
+    container.appendChild(link)
+    popup.document.body.appendChild(container)
   }
 
   return (
     <>
       {isCartOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={toggleCart} />}
-
-      {/* ✅ QR Code Modal */}
       {showQRCode && (
         <div className="fixed inset-0 bg-black/70 z-60 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4">
@@ -74,7 +136,7 @@ export default function CartSidebar() {
               <div className="mb-4">
                 <p className="text-sm text-slate-600 mb-2">Scan QR code to pay</p>
                 <p className="text-lg font-bold text-blue-600">₹{cartTotal}</p>
-                <p className="text-sm text-slate-500">UPI ID: 9335537142@ptyes</p>
+                <p className="text-sm text-slate-500">UPI ID: 7234944612@ptsbi</p>
               </div>
               <div className="flex gap-3">
                 <button

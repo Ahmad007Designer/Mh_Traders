@@ -8,7 +8,7 @@ const categories = [
   {
     id: "photo",
     name: "Photo Printing",
-    icon: "🖼️", // ✅ Emoji icon for heading
+    icon: "🖼️",
     description: "High-quality prints with vibrant colors",
     bgColor: "#FFF4E6",
     products: [
